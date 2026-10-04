@@ -69,7 +69,7 @@ The panel is shown when there is a player character, the game's interface is in 
 - Positions follow the default interface layout at 16:9. On ultrawide the panel is shifted like the game's interface, which has not been tried.
 - The rune sign is the mod's own drawing and is the same for every Great Rune. It has not been seen in the game yet.
 - Status effect icons, buffs and the boss bar are left to the game.
-- Several overlays hooking the same swap chain can conflict. This mod and [er_ping_marker](https://github.com/DarkSailas) take turns at start through a named mutex; mods that do not know about it may still collide. If the game does not start with this DLL, remove it from the profile and check the log.
+- Several overlays hooking the same swap chain can conflict. This mod and [er_ping_marker](https://github.com/DarkSailas/EldenRing-PingMarker) take turns at start through a named mutex; mods that do not know about it may still collide. If the game does not start with this DLL, remove it from the profile and check the log.
 - Built for 1.17.1. Other game versions may shift the structures the mod reads.
 
 ## Build
