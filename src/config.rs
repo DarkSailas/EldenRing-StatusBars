@@ -40,7 +40,7 @@ impl Default for Config {
             show_name: true,
             show_numbers: true,
             show_level: true,
-            show_delay: 1.0,
+            show_delay: 0.0,
             hide_during_fade: true,
             hide_in_menus: true,
             hp_px_per_point: 0.4,

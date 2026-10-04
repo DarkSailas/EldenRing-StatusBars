@@ -3,8 +3,8 @@
 ## Target
 
 - Elden Ring 1.17.1, `eldenring.exe` 2.7.1.0, The Convergence, me3 0.13.0, Seamless Co-op.
-- Idea: a better-looking player panel (HP, FP, stamina) in a grim, austere dark fantasy style, with the equipped Great Rune in a medallion and the character level under it.
-- Done means: works in the game. Current state (2026-10-04): loads, the panel is drawn over the game's bars with real values, the medallion is empty without a Great Rune, the level is shown. The austere restyle and the menu rule were built after the last run and have not been seen in the game.
+- Idea: a better-looking player panel (HP, FP, stamina) in an ornate dark fantasy style (aged gold, scrolls, a beaded medallion), with the equipped Great Rune in a medallion and the character level under it.
+- Done means: works in the game. Current state (2026-10-04): 0.1.0 loads, the panel is drawn over the game's bars with real values, the medallion is empty without a Great Rune, the level is shown. 0.2.0 (the gold look, no show delay) is built and deployed and has not been seen in the game.
 
 ## Route
 
@@ -35,21 +35,25 @@ First build showed the panel as soon as a player object existed, which is before
 1. a player exists;
 2. `hud_state == Default` (`HideInMenus`, on by default). `ShowAll` is the esc menu and `PopupMenu` a popup; with the key off the rule is only `hud_state != HideAll` and the panel stays up in menus;
 3. no fade plate has alpha above 0.5 (`HideDuringFade`);
-4. all of that held for `ShowDelay` seconds (1 by default).
+4. all of that held for `ShowDelay` seconds (0 by default since 0.2.0; it was 1).
 
-The panel fades in slowly and leaves in a few frames. A plate that stays dark for 20 s is ignored until it clears, so a stuck plate cannot hide the panel for good.
+With a 1 s delay and a slow fade-in the game's own bars were seen first and the panel covered them late. Since 0.2.0 the panel comes in and leaves within a few frames (`FADE_IN` 14, `FADE_OUT` 16). A plate that stays dark for 20 s is ignored until it clears, so a stuck plate cannot hide the panel for good.
 
 There is no player object on the title screen, so the panel cannot show at launch. The one time it did, it was the `Preview` test mode (gotcha 2).
 
-Log of a normal load: `hud state Default`, `fade plate 2 covers the screen, alpha 1.00`, about 4.4 s later `fade cleared`, one second later `panel shown`.
+Log of a normal load: `hud state Default`, `fade plate 2 covers the screen, alpha 1.00`, about 4.4 s later `fade cleared`, one second later `panel shown` (0.1.0, with the 1 s delay).
 
 ## Style
 
 The first look (pointed bar ends, diamonds on the medallion, tick marks, a gold ring, a glowing tip, a name plate) was rejected as too ornate and not dark enough. Current look: near-black plates, a 2 px dark steel frame, square bar ends, dull red / steel blue / olive fills with a vertical gradient, grey for the part just lost, the name as plain text, a black medallion in one ring, dim bone-coloured text. The frame of the HP bar turns dark red below a quarter.
 
+That look (0.1.0) was rejected in turn: too dark, the medallion and the bars could not be made out in the game. 0.2.0 goes back to an ornate look, this time with legible colours: a warm black plate with a pointed end, gold bar frames with a gloss line, bright red / blue / green gradient fills, pale gold for the part just lost, a gold lozenge with a stone at the end of each bar, the name between two gold rules that end in spiral scrolls, a medallion in a beaded gold ring with star rays, a hexagonal level plaque. The sign in the medallion is dim bronze, gold, or gold with a glow. Drawing lives in `src/panel.rs` behind the `Surface` trait; `src/overlay.rs` only feeds it the imgui draw list.
+
+The test `every_filled_shape_is_convex` draws three sample states to an SVG surface, checks every filled polygon for convexity (imgui fills only convex shapes) and writes `%TEMP%/er_status_bars_preview.svg`. `docs/preview.png` is that file rendered by a browser.
+
 ## Layout (pixels of 1920x1080)
 
-- Bars start at x 150. Rows: HP 45 to 58, FP 64 to 77, stamina 83 to 96. With a 2 px frame the rows keep a 2 px gap; at a 4 px distance the frames touched and the FP frame was painted over.
+- Bars start at x 150; since 0.2.0 the gold frame starts at x 118 and runs under the medallion, and the plate ends 25 px past the longest bar. Rows: HP 45 to 58, FP 64 to 77, stamina 83 to 96. With a 2 px frame the rows keep a 2 px gap; at a 4 px distance the frames touched and the FP frame was painted over.
 - Length = maximum value × pixels per point (0.4 / 1.75 / 3.0), between 60 and 900. Checked on one character: 990 HP, 97 FP, 110 stamina.
 - Medallion centre (91, 70), radius 44. Level plate under it.
 
@@ -66,12 +70,14 @@ The first look (pointed bar ends, diamonds on the medallion, tick marks, a gold 
 - DLL and ini: `D:\Games\ConvergenceER\mod\dll\er_status_bars.dll`, `er_status_bars.ini`.
 - Profiles `convergence.me3` and `convergence - seamless.me3` got a `[[natives]]` entry. Copies from before the change: `D:\Games\ConvergenceER\_fds_backup\statusbars_2026-10-04\`.
 - Undo: restore both `.me3` files from that folder, or delete the added lines.
+- 0.2.0 replaced the DLL; the 0.1.0 build is kept there as `er_status_bars_0.1.0.dll`. The deployed ini got `ShowDelay = 0`.
 
 ## Not verified
 
 1. The rune sign with a Great Rune equipped, and lit with a Rune Arc.
 2. Cutscenes, death screen, fast travel: whether the fade rule hides the panel at the right moments.
-3. The austere style and the row spacing (built after the last screenshot).
+3. The 0.2.0 look in the game: the font, the row spacing with the 2.5 px gold frames, the lozenges against the game's own bar ends. Only the SVG preview has been looked at.
 4. Resolutions other than 1920x1080 and non-16:9 pictures.
 5. Characters with much longer bars than the one tested.
 6. `HideInMenus`: that the panel leaves in the esc menu, the map, the inventory and at a grace, and that nothing in plain play reports a state other than `Default`.
+7. That with `ShowDelay = 0` the panel is up before the game's own bars are seen, after a load and after closing a menu.

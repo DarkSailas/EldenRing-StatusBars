@@ -2,6 +2,7 @@ mod config;
 mod game;
 mod log;
 mod overlay;
+mod panel;
 mod state;
 
 use std::{
