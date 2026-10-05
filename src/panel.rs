@@ -5,28 +5,31 @@ use crate::{config::Config, state::Stats};
 type Rgb = [f32; 3];
 type Point = (f32, f32);
 
-/// Aged gold on warm black: the metal carries the ornament, the fills stay bright enough to read.
-const GOLD: Rgb = [0.78, 0.62, 0.33];
-const GOLD_LIGHT: Rgb = [0.97, 0.86, 0.58];
-const GOLD_DARK: Rgb = [0.33, 0.24, 0.11];
-const INK: Rgb = [0.035, 0.028, 0.025];
-const BACK: Rgb = [0.07, 0.058, 0.052];
-const TROUGH: Rgb = [0.13, 0.10, 0.09];
-const FACE: Rgb = [0.11, 0.09, 0.085];
-const FACE_GLOW: Rgb = [0.21, 0.15, 0.11];
-const TEXT: Rgb = [0.96, 0.91, 0.79];
+/// Blackened iron, embers and arcane light: the metal stays dark, the fills and the eye carry the colour.
+const IRON: Rgb = [0.30, 0.31, 0.36];
+const IRON_LIGHT: Rgb = [0.66, 0.68, 0.75];
+const IRON_DARK: Rgb = [0.12, 0.12, 0.15];
+const INK: Rgb = [0.02, 0.02, 0.03];
+const BACK: Rgb = [0.045, 0.045, 0.06];
+const TROUGH: Rgb = [0.10, 0.09, 0.12];
+const FACE: Rgb = [0.07, 0.065, 0.09];
+const TEXT: Rgb = [0.91, 0.90, 0.88];
 const WHITE: Rgb = [1.0, 1.0, 1.0];
 
-const HP_TOP: Rgb = [0.90, 0.22, 0.17];
-const HP_BOTTOM: Rgb = [0.52, 0.07, 0.08];
-const FP_TOP: Rgb = [0.30, 0.55, 0.95];
-const FP_BOTTOM: Rgb = [0.11, 0.22, 0.58];
-const STAMINA_TOP: Rgb = [0.46, 0.78, 0.36];
-const STAMINA_BOTTOM: Rgb = [0.17, 0.42, 0.18];
-const LAG: Rgb = [0.98, 0.86, 0.55];
-const DANGER: Rgb = [1.0, 0.25, 0.15];
-const SIGIL_DIM: Rgb = [0.40, 0.34, 0.26];
-const SIGIL_LIT: Rgb = [1.0, 0.92, 0.66];
+const HP_TOP: Rgb = [0.90, 0.18, 0.13];
+const HP_BOTTOM: Rgb = [0.42, 0.03, 0.06];
+const FP_TOP: Rgb = [0.52, 0.44, 1.0];
+const FP_BOTTOM: Rgb = [0.18, 0.11, 0.55];
+const STAMINA_TOP: Rgb = [0.40, 0.80, 0.42];
+const STAMINA_BOTTOM: Rgb = [0.10, 0.36, 0.21];
+const LAG: Rgb = [0.88, 0.86, 0.82];
+const DANGER: Rgb = [1.0, 0.22, 0.12];
+const EMBER: Rgb = [1.0, 0.50, 0.10];
+const EMBER_LIT: Rgb = [1.0, 0.86, 0.35];
+const EMBER_DEEP: Rgb = [0.55, 0.08, 0.03];
+const ASH: Rgb = [0.42, 0.42, 0.50];
+const ASH_DARK: Rgb = [0.14, 0.14, 0.18];
+const ARCANE: Rgb = [0.66, 0.42, 1.0];
 
 /// Layout in pixels of a 1920x1080 picture; the rows sit on the game's own bars.
 const BARS_X: f32 = 150.0;
@@ -39,8 +42,8 @@ const MEDALLION: (f32, f32, f32) = (91.0, 70.0, 44.0);
 const FRAME: f32 = 2.5;
 /// How far the dark backing reaches past a bar; it is what covers the game's own bar.
 const BACKING: f32 = 5.0;
-/// Length of the finial at the end of a bar, tail included.
-const FINIAL: f32 = 32.0;
+/// Length of the blade at the end of a bar.
+const FINIAL: f32 = 22.0;
 const BANDS: usize = 6;
 const LOW_HP: f32 = 0.25;
 const NAME_Y: f32 = 25.0;
@@ -188,159 +191,254 @@ impl Canvas<'_> {
         }
     }
 
-    /// Gold lozenge with a stone of the bar's colour and a thin tail, at the far end of a bar.
+    /// Barbed iron blade with a stone of the bar's colour, at the far end of a bar.
     fn finial(&self, bar: &Bar, metal: Rgb) {
         let (y0, y1) = bar.row;
         let mid = (y0 + y1) * 0.5;
         let tip = BARS_X + bar.length + FRAME;
-        let (left, centre, right) = (tip - 1.0, tip + 6.0, tip + 13.0);
+        let (notch, point) = (tip + 3.0, tip + FINIAL);
+        let upper = [(notch, mid), (tip - 2.0, y0 - 5.0), (point, mid)];
+        let lower = [(notch, mid), (point, mid), (tip - 2.0, y1 + 5.0)];
 
-        self.stroke(&[(right - 1.0, mid), (tip + FINIAL - 4.0, mid)], false, metal, 1.0, 1.4);
-        self.disc(tip + FINIAL - 3.0, mid, 2.0, GOLD_LIGHT, 1.0);
+        self.fill(&upper, mix(metal, IRON_LIGHT, 0.6), 1.0);
+        self.fill(&lower, mix(metal, IRON_DARK, 0.6), 1.0);
+        self.stroke(&[upper[0], upper[1], upper[2], lower[2]], true, INK, 0.9, 1.0);
 
-        let lozenge = [(left, mid), (centre, y0 - 3.0), (right, mid), (centre, y1 + 3.0)];
-        self.fill(&lozenge, metal, 1.0);
-        self.fill(&[(left, mid), (centre, y0 - 3.0), (centre, mid)], GOLD_LIGHT, 0.85);
-        self.fill(&[(centre, mid), (right, mid), (centre, y1 + 3.0)], GOLD_DARK, 0.75);
-        self.stroke(&lozenge, true, INK, 0.9, 1.0);
-
-        let stone = [(centre - 3.5, mid), (centre, mid - 4.5), (centre + 3.5, mid), (centre, mid + 4.5)];
-        self.fill(&stone, mix(bar.bottom, INK, 0.3), 1.0);
-        self.fill(&[stone[0], stone[1], (centre, mid)], bar.top, 1.0);
+        let centre = tip + 7.0;
+        let stone = [(centre - 3.0, mid), (centre, mid - 3.5), (centre + 4.5, mid), (centre, mid + 3.5)];
+        self.fill(&stone, mix(bar.bottom, INK, 0.2), 1.0);
+        self.fill(&[stone[0], stone[1], stone[2]], bar.top, 1.0);
         self.stroke(&stone, true, INK, 0.9, 1.0);
     }
 
     fn bar(&self, bar: &Bar) {
         let (y0, y1) = bar.row;
         let end = BARS_X + bar.length;
-        let metal = if bar.danger { DANGER } else { GOLD };
+        let metal = if bar.danger { DANGER } else { IRON };
         let frame = rect(NECK_X, y0 - FRAME, end + FRAME, y1 + FRAME);
         let trough = rect(BARS_X, y0, end, y1);
 
-        self.fill(&frame, mix(GOLD_DARK, metal, if bar.danger { 0.35 } else { 0.0 }), 1.0);
+        self.fill(&frame, mix(IRON_DARK, metal, if bar.danger { 0.4 } else { 0.0 }), 1.0);
         self.fill(&trough, TROUGH, 1.0);
 
         let filled = bar.length * bar.value;
-        self.bar_span(bar, (filled, bar.length * bar.lagged.min(1.0)), (LAG, mix(LAG, INK, 0.45)), 0.9);
+        self.bar_span(bar, (filled, bar.length * bar.lagged.min(1.0)), (LAG, mix(LAG, INK, 0.5)), 0.9);
         self.bar_span(bar, (0.0, filled), (bar.top, bar.bottom), 1.0);
         if filled > 3.0 {
             let gloss = mix(bar.top, WHITE, 0.55);
-            self.stroke(&[(BARS_X + 1.0, y0 + 2.0), (BARS_X + filled - 1.0, y0 + 2.0)], false, gloss, 0.55, 1.0);
+            self.stroke(&[(BARS_X + 1.0, y0 + 2.0), (BARS_X + filled - 1.0, y0 + 2.0)], false, gloss, 0.5, 1.0);
             if bar.value < 1.0 {
                 self.stroke(&[(BARS_X + filled, y0), (BARS_X + filled, y1)], false, gloss, 0.9, 1.0);
             }
         }
 
         self.stroke(&trough, true, INK, 0.9, 1.0);
-        self.stroke(&frame, true, INK, 0.8, 2.6);
-        self.stroke(&frame, true, metal, 1.0, 1.3);
-        self.disc(BARS_X - 6.0, (y0 + y1) * 0.5, 2.0, GOLD_LIGHT, 1.0);
+        self.stroke(&frame, true, INK, 0.85, 2.8);
+        self.stroke(&frame, true, metal, 1.0, 1.4);
+        let light = if bar.danger { mix(DANGER, WHITE, 0.3) } else { IRON_LIGHT };
+        self.stroke(&[(NECK_X, y0 - FRAME), (end + FRAME, y0 - FRAME)], false, light, 0.8, 1.0);
+        self.disc(BARS_X - 6.0, (y0 + y1) * 0.5, 2.0, mix(bar.top, WHITE, 0.25), 1.0);
         self.finial(bar, metal);
     }
 
-    /// Thin gold rule that ends in a scroll; `turn` is -1 to curl upwards and 1 to curl downwards.
-    fn flourish(&self, x0: f32, x1: f32, y: f32, turn: f32) {
-        const RADIUS: f32 = 6.0;
-        const STEPS: usize = 28;
+    /// Iron line that ends like the tail of a dragon: a wave and a barbed tip.
+    /// `turn` is -1 for the first swing upwards and 1 for downwards; the lower one carries spines.
+    fn tail(&self, x0: f32, x1: f32, y: f32, turn: f32) {
+        const STEPS: usize = 30;
+        const WAVE: f32 = 54.0;
+        let start = (x1 - WAVE).max(x0);
         let mut points = vec![(x0, y)];
         points.extend((0..=STEPS).map(|k| {
             let t = k as f32 / STEPS as f32;
-            let angle = turn * (t * 1.6 * TAU - PI * 0.5);
-            let radius = RADIUS * (1.0 - 0.85 * t);
-            (x1 + angle.cos() * radius, y + turn * RADIUS + angle.sin() * radius)
+            (start + (x1 - start) * t, y + turn * (t * 1.5 * TAU).sin() * 4.0 * t.sqrt() * (1.0 - t * 0.35))
         }));
-        self.stroke(&points, false, INK, 0.7, 3.0);
-        self.stroke(&points, false, GOLD, 1.0, 1.4);
+        self.stroke(&points, false, INK, 0.75, 3.2);
+        self.stroke(&points, false, IRON_LIGHT, 1.0, 1.5);
 
-        let knot = x0 + (x1 - x0) * 0.5;
-        let lozenge = [(knot - 5.0, y), (knot, y - 3.0), (knot + 5.0, y), (knot, y + 3.0)];
-        self.fill(&lozenge, GOLD_LIGHT, 1.0);
-        self.stroke(&lozenge, true, INK, 0.8, 1.0);
+        let upper = [(x1 + 1.0, y), (x1 - 4.0, y - 5.0), (x1 + 13.0, y)];
+        let lower = [(x1 + 1.0, y), (x1 + 13.0, y), (x1 - 4.0, y + 5.0)];
+        self.fill(&upper, IRON_LIGHT, 1.0);
+        self.fill(&lower, IRON, 1.0);
+        self.stroke(&[upper[0], upper[1], upper[2], lower[2]], true, INK, 0.9, 1.0);
+
+        if turn > 0.0 {
+            let straight = start - x0;
+            for share in [0.2, 0.45, 0.7, 0.95] {
+                let x = x0 + straight * share;
+                let spine = [(x - 4.0, y), (x + 5.0, y + 6.0), (x + 3.0, y)];
+                self.fill(&spine, IRON_LIGHT, 1.0);
+                self.stroke(&spine, true, INK, 0.8, 0.8);
+            }
+        }
     }
 
-    /// Faceted point of the star behind the medallion.
-    fn ray(&self, angle: f32, tip: f32, half_width: f32) {
+    /// Faceted spike behind the medallion.
+    fn spike(&self, angle: f32, tip: f32, half_width: f32) {
         let (cx, cy, r) = MEDALLION;
         let (c, s) = (angle.cos(), angle.sin());
         let base = (cx + c * (r - 4.0), cy + s * (r - 4.0));
         let tip = (cx + c * (r + tip), cy + s * (r + tip));
         let left = (base.0 + s * half_width, base.1 - c * half_width);
         let right = (base.0 - s * half_width, base.1 + c * half_width);
-        self.fill(&[left, tip, base], GOLD_LIGHT, 1.0);
-        self.fill(&[base, tip, right], mix(GOLD, GOLD_DARK, 0.55), 1.0);
+        self.fill(&[left, tip, base], IRON_LIGHT, 1.0);
+        self.fill(&[base, tip, right], IRON_DARK, 1.0);
         self.stroke(&[left, tip, right], false, INK, 0.85, 1.0);
     }
 
-    /// Sign of the Great Rune: dim without one, gold with one, glowing while a Rune Arc powers it.
-    fn sigil(&self, equipped: bool, lit: bool) {
-        let (cx, cy, _) = MEDALLION;
-        let rgb = match (equipped, lit) {
-            (_, true) => SIGIL_LIT,
-            (true, false) => GOLD,
-            (false, false) => SIGIL_DIM,
+    /// Horn along a quadratic curve, `width` thick at the root and pointed at the end.
+    fn horn(&self, [a, b, c]: [Point; 3], width: f32) {
+        const STEPS: usize = 9;
+        let at = |t: f32| {
+            let u = 1.0 - t;
+            (u * u * a.0 + 2.0 * u * t * b.0 + t * t * c.0, u * u * a.1 + 2.0 * u * t * b.1 + t * t * c.1)
         };
-        let draw = |rgb: Rgb, alpha: f32, thickness: f32| {
-            self.stroke(&[(cx, cy - 25.0), (cx, cy + 25.0)], false, rgb, alpha, thickness);
-            self.ring(cx, cy - 5.0, 12.0, rgb, alpha, thickness);
-            self.arc((cx, cy - 23.0, 31.0), (PI * 0.27, PI * 0.73), rgb, alpha, thickness);
-            self.arc((cx, cy - 7.0, 23.0), (PI * 0.19, PI * 0.81), rgb, alpha, thickness);
+        let edge = |k: usize, side: f32| {
+            let t = k as f32 / STEPS as f32;
+            let (p, q) = (at((t - 0.02).max(0.0)), at((t + 0.02).min(1.0)));
+            let (dx, dy) = (q.0 - p.0, q.1 - p.1);
+            let length = (dx * dx + dy * dy).sqrt().max(1e-3);
+            let half = width * 0.5 * (1.0 - t) * side;
+            let spine = at(t);
+            (spine.0 - dy / length * half, spine.1 + dx / length * half)
         };
-        if lit {
-            draw(GOLD_LIGHT, 0.22, 6.0);
+        for k in 0..STEPS {
+            let (from, to) = (edge(k, 0.0), edge(k + 1, 0.0));
+            self.fill(&[edge(k, 1.0), edge(k + 1, 1.0), to, from], IRON_LIGHT, 1.0);
+            self.fill(&[from, to, edge(k + 1, -1.0), edge(k, -1.0)], IRON_DARK, 1.0);
         }
-        draw(INK, 0.7, 4.0);
-        draw(rgb, 1.0, 2.0);
+        let outline: Vec<Point> =
+            (0..=STEPS).map(|k| edge(k, 1.0)).chain((0..STEPS).rev().map(|k| edge(k, -1.0))).collect();
+        self.stroke(&outline, false, INK, 0.9, 1.0);
+        // Ridges across the horn, towards the root.
+        for k in 1..5 {
+            self.stroke(&[edge(k, 1.0), edge(k, -1.0)], false, INK, 0.55, 1.0);
+        }
     }
 
-    /// Round shield in a beaded gold ring with a star of points behind it.
-    fn medallion(&self, level_shown: bool) {
+    /// Runes cut into the ring of the medallion; a Great Rune lights them.
+    fn runes(&self, equipped: bool, lit: bool) {
+        const GLYPHS: [&[&[Point]]; 6] = [
+            &[&[(0.0, -3.0), (0.0, 3.0)], &[(0.0, -3.0), (2.5, -0.5), (0.0, 1.0)]],
+            &[&[(-2.0, -3.0), (2.0, 3.0)], &[(2.0, -3.0), (-2.0, 3.0)]],
+            &[&[(0.0, -3.0), (0.0, 3.0)], &[(-2.5, -0.5), (0.0, -3.0), (2.5, -0.5)]],
+            &[&[(-2.0, 3.0), (-2.0, -3.0), (2.0, 3.0), (2.0, -3.0)]],
+            &[&[(0.0, -3.0), (-2.5, 0.0), (0.0, 3.0), (2.5, 0.0), (0.0, -3.0)]],
+            &[&[(-1.5, -3.0), (-1.5, 3.0)], &[(-1.5, -3.0), (2.0, -1.0), (-1.5, 1.0)]],
+        ];
+        const COUNT: usize = 10;
         let (cx, cy, r) = MEDALLION;
-        self.disc(cx, cy + 2.0, r + 8.0, INK, 0.55);
-
-        for quarter in 0..4 {
-            self.ray(PI * 0.25 + PI * 0.5 * quarter as f32, 9.0, 5.0);
+        let (rgb, alpha) = match (equipped, lit) {
+            (_, true) => (mix(ARCANE, WHITE, 0.45), 1.0),
+            (true, false) => (ARCANE, 0.95),
+            (false, false) => (ASH, 0.75),
+        };
+        for k in 0..COUNT {
+            let angle = TAU * (k as f32 + 0.5) / COUNT as f32;
+            let (c, s) = (angle.cos(), angle.sin());
+            let centre = (cx + c * (r - 9.5), cy + s * (r - 9.5));
+            for line in GLYPHS[k % GLYPHS.len()] {
+                let points: Vec<Point> =
+                    line.iter().map(|&(u, v)| (centre.0 - s * u - c * v, centre.1 + c * u - s * v)).collect();
+                if lit {
+                    self.stroke(&points, false, ARCANE, 0.35, 3.2);
+                }
+                self.stroke(&points, false, rgb, alpha, 1.1);
+            }
         }
-        self.ray(-PI * 0.5, 15.0, 7.0);
-        self.ray(PI, 15.0, 7.0);
+    }
+
+    /// Eye of a dragon in the medallion: ashen without a Great Rune, burning with one,
+    /// blazing while a Rune Arc powers it.
+    fn eye(&self, equipped: bool, lit: bool) {
+        const RINGS: usize = 7;
+        const STREAKS: usize = 22;
+        const HALF: usize = 10;
+        let (cx, cy, r) = MEDALLION;
+        let radius = r - 17.0;
+        let (rim, core, slit) = match (equipped, lit) {
+            (_, true) => (EMBER_DEEP, EMBER_LIT, 3.6),
+            (true, false) => (mix(EMBER_DEEP, INK, 0.35), EMBER, 4.6),
+            (false, false) => (ASH_DARK, ASH, 5.4),
+        };
+        if lit {
+            self.disc(cx, cy, radius + 5.0, EMBER, 0.28);
+        }
+        self.disc(cx, cy, radius + 1.2, INK, 1.0);
+        for k in 0..RINGS {
+            let t = k as f32 / (RINGS - 1) as f32;
+            self.disc(cx, cy, radius * (1.0 - 0.74 * t), mix(rim, core, t), 1.0);
+        }
+        for k in 0..STREAKS {
+            let angle = TAU * k as f32 / STREAKS as f32 + 0.07;
+            let (c, s) = (angle.cos(), angle.sin());
+            let (from, to) = (radius * (0.34 + 0.12 * (k % 3) as f32), radius * 0.97);
+            self.stroke(&[(cx + c * from, cy + s * from), (cx + c * to, cy + s * to)], false, rim, 0.5, 1.0);
+        }
+
+        let height = radius * 0.88;
+        let side = |sign: f32, k: usize| {
+            let t = k as f32 / HALF as f32 * 2.0 - 1.0;
+            (cx + sign * slit * (1.0 - t * t), cy + height * t * sign)
+        };
+        let pupil: Vec<Point> =
+            (0..HALF * 2).map(|k| if k < HALF { side(1.0, k) } else { side(-1.0, k - HALF) }).collect();
+        self.fill(&pupil, INK, 1.0);
+        self.stroke(&pupil, true, mix(core, WHITE, 0.3), if equipped { 0.55 } else { 0.25 }, 0.8);
+        self.disc(cx - 8.0, cy - 9.0, 2.4, WHITE, if equipped { 0.75 } else { 0.35 });
+    }
+
+    /// Round iron shield with horns and spikes; the runes and the eye go on top.
+    fn medallion(&self, level_shown: bool, lit: bool) {
+        let (cx, cy, r) = MEDALLION;
+        if lit {
+            self.disc(cx, cy, r + 12.0, ARCANE, 0.14);
+            self.disc(cx, cy, r + 8.0, ARCANE, 0.14);
+        } else {
+            self.disc(cx, cy + 2.0, r + 8.0, INK, 0.55);
+        }
+
+        for side in [-1.0, 1.0] {
+            let root = (cx + side * 22.0, cy - 34.0);
+            self.horn([root, (cx + side * 49.0, cy - 46.0), (cx + side * 31.0, cy - 66.0)], 13.0);
+        }
+        self.spike(-PI * 0.5, 9.0, 5.0);
+        self.spike(PI, 14.0, 7.0);
+        self.spike(PI * 0.82, 8.0, 5.0);
+        self.spike(PI * 1.18, 8.0, 5.0);
+        self.spike(PI * 0.68, 11.0, 6.0);
+        self.spike(PI * 0.32, 11.0, 6.0);
         if !level_shown {
-            self.ray(PI * 0.5, 15.0, 7.0);
+            self.spike(PI * 0.5, 15.0, 7.0);
         }
 
         self.disc(cx, cy, r + 4.5, INK, 1.0);
-        self.disc(cx, cy, r + 3.5, GOLD_DARK, 1.0);
-        self.ring(cx, cy, r + 0.5, GOLD, 1.0, 3.0);
-        self.arc((cx, cy, r + 1.5), (PI * 1.1, PI * 1.9), GOLD_LIGHT, 0.9, 1.2);
+        self.disc(cx, cy, r + 3.5, IRON_DARK, 1.0);
+        self.ring(cx, cy, r + 0.5, IRON, 1.0, 3.0);
+        self.arc((cx, cy, r + 1.5), (PI * 1.1, PI * 1.9), IRON_LIGHT, 0.9, 1.2);
         self.disc(cx, cy, r - 3.0, INK, 1.0);
         self.disc(cx, cy, r - 4.0, FACE, 1.0);
-        self.disc(cx, cy - 3.0, r - 16.0, FACE_GLOW, 0.55);
-        self.disc(cx, cy - 5.0, r - 26.0, FACE_GLOW, 0.5);
-
-        for (x, y) in circle(cx, cy, r - 8.0, 32) {
-            self.disc(x, y, 1.3, GOLD, 1.0);
-        }
-        self.ring(cx, cy, r - 12.0, GOLD_DARK, 1.0, 1.0);
+        self.ring(cx, cy, r - 15.0, IRON, 1.0, 1.2);
     }
 
-    /// Pointed plaque with the character level, hung under the medallion.
+    /// Pointed iron scale with the character level, hung under the medallion.
     fn level_plate(&self, level: u32) {
         let text = level.to_string();
         let (cx, cy, r) = MEDALLION;
         let (y, half_h) = (cy + r + 13.0, 10.5);
-        let half_w = (self.text_width(FONT_SMALL, &text) * 0.5 + 6.0).max(14.0);
+        let half_w = (self.text_width(FONT_SMALL, &text) * 0.5 + 9.0).max(17.0);
         let shape = [
-            (cx - half_w - 9.0, y),
             (cx - half_w, y - half_h),
             (cx + half_w, y - half_h),
-            (cx + half_w + 9.0, y),
-            (cx + half_w, y + half_h),
-            (cx - half_w, y + half_h),
+            (cx + half_w + 5.0, y),
+            (cx + half_w - 4.0, y + half_h),
+            (cx, y + half_h + 7.0),
+            (cx - half_w + 4.0, y + half_h),
+            (cx - half_w - 5.0, y),
         ];
         self.fill(&shape, FACE, 1.0);
-        self.stroke(&shape, true, INK, 0.9, 3.4);
-        self.stroke(&shape, true, GOLD, 1.0, 1.5);
-        self.disc(cx - half_w - 3.0, y, 1.5, GOLD_LIGHT, 1.0);
-        self.disc(cx + half_w + 3.0, y, 1.5, GOLD_LIGHT, 1.0);
-        self.text(FONT_SMALL, (cx, y), (0.5, 0.5), TEXT, &text);
+        self.stroke(&shape, true, INK, 0.9, 3.6);
+        self.stroke(&shape, true, IRON_LIGHT, 1.0, 1.4);
+        self.text(FONT_SMALL, (cx, y - 1.0), (0.5, 0.5), TEXT, &text);
     }
 }
 
@@ -405,16 +503,17 @@ pub fn draw(surface: &dyn Surface, panel: &Panel) {
 
     let named = cfg.show_name && !stats.name.is_empty();
     let name_width = if named { canvas.text_width(FONT_NAME, &stats.name) } else { 0.0 };
-    let rule_end = BARS_X + (name_width + 26.0).max(150.0);
-    canvas.flourish(NECK_X + 14.0, rule_end, TOP_RULE_Y, -1.0);
-    canvas.flourish(NECK_X + 14.0, BARS_X + 120.0, BOTTOM_RULE_Y, 1.0);
+    let rule_end = BARS_X + (name_width + 70.0).max(170.0);
+    canvas.tail(NECK_X + 14.0, rule_end, TOP_RULE_Y, -1.0);
+    canvas.tail(NECK_X + 14.0, BARS_X + 130.0, BOTTOM_RULE_Y, 1.0);
     if named {
         canvas.text(FONT_NAME, (BARS_X + 2.0, NAME_Y), (0.0, 0.5), TEXT, &stats.name);
     }
 
     let level_shown = cfg.show_level && stats.level > 0;
-    canvas.medallion(level_shown);
-    canvas.sigil(stats.great_rune, stats.rune_active);
+    canvas.medallion(level_shown, stats.rune_active);
+    canvas.runes(stats.great_rune, stats.rune_active);
+    canvas.eye(stats.great_rune, stats.rune_active);
     if level_shown {
         canvas.level_plate(stats.level);
     }

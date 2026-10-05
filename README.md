@@ -1,22 +1,22 @@
 # Elden Ring Status Bars
 
-A native DLL for Elden Ring 1.17.1 (`eldenring.exe` 2.7.1.0) that redraws the player's HP, FP and stamina panel in an ornate dark fantasy style: aged gold on warm black, with bright fills that stay readable.
+A native DLL for Elden Ring 1.17.1 (`eldenring.exe` 2.7.1.0) that redraws the player's HP, FP and stamina panel in a dark fantasy style: blackened iron, dragon horns and a dragon's eye, runes that light up, and bright fills that stay readable.
 
 ![Panel preview](docs/preview.png)
 
 The picture is rendered by the test in `src/panel.rs` from the same shapes the mod draws, over a dark and a bright background. It is not a game screenshot, and the font differs from the one used in the game.
 
-- three bars in gold frames with red, blue and green gradient fills; the part just lost stays visible in pale gold for a moment and then shrinks;
-- a gold lozenge with a stone of the bar's colour at the end of each bar;
+- three bars in dark iron frames with red, violet and green gradient fills; the part just lost stays visible in pale grey for a moment and then shrinks;
+- a barbed iron blade with a stone of the bar's colour at the end of each bar;
 - current and maximum values next to each bar;
-- the character name above the bars, between two thin gold rules that end in scrolls;
-- a round medallion on the left in a beaded gold ring with a star of points behind it. The sign inside is dim bronze without a Great Rune, gold with one equipped, and bright with a glow while a Rune Arc is active;
+- the character name above the bars, between two iron rules that end like a dragon's tail: a wave, a barbed tip, spines on the lower one;
+- a round iron medallion on the left with two horns and spikes, and runes cut into its ring. Inside is a dragon's eye with a slit pupil: ashen without a Great Rune, burning orange with one equipped. While a Rune Arc is active the eye blazes and the runes glow violet;
 - the character level on a pointed plaque under the medallion;
 - the frame of the HP bar turns red below a quarter of the maximum.
 
 The mod changes no game files. It draws over the game's own bars and covers them with a dark plate.
 
-> Status: version 0.2.0 is built and its tests pass, but the new look has not been seen in the game yet. Version 0.1.0 ran in the game with The Convergence and Seamless Co-op (loading, real values, the level). Not confirmed: the 0.2.0 look, the panel coming in without a delay, hiding in menus, the sign with a Great Rune equipped, cutscenes, resolutions other than 1920x1080. See "Known limits".
+> Status: version 0.3.0 is built and its tests pass, but the new look has not been seen in the game yet. Version 0.1.0 ran in the game with The Convergence and Seamless Co-op (loading, real values, the level). Not confirmed: the 0.3.0 look, the panel coming in without a delay, hiding in menus, the eye with a Great Rune equipped, cutscenes, resolutions other than 1920x1080. See "Known limits".
 
 ## Install
 
@@ -73,7 +73,7 @@ The panel is shown when there is a player character, the game's interface is in 
 
 - The game's own bars are covered, not removed. A bar longer than the panel's shows from under it; tune `[Bars]`.
 - Positions follow the default interface layout at 16:9. On ultrawide the panel is shifted like the game's interface, which has not been tried.
-- The sign in the medallion is the mod's own drawing and is the same for every Great Rune. Its gold and lit states have not been seen in the game yet.
+- The eye in the medallion is the mod's own drawing and is the same for every Great Rune. Its burning and blazing states have not been seen in the game yet.
 - Status effect icons, buffs and the boss bar are left to the game.
 - Several overlays hooking the same swap chain can conflict. This mod and [er_ping_marker](https://github.com/DarkSailas/EldenRing-PingMarker) take turns at start through a named mutex; mods that do not know about it may still collide. If the game does not start with this DLL, remove it from the profile and check the log.
 - Built for 1.17.1. Other game versions may shift the structures the mod reads.
@@ -97,13 +97,13 @@ MIT, see `LICENSE`.
 
 # Панель здоровья, маны и выносливости (по-русски)
 
-Нативная DLL для Elden Ring 1.17.1. Перерисовывает панель игрока в нарядном стиле тёмного фэнтези: состаренное золото на тёплом чёрном, заливки яркие и читаются на любом фоне.
+Нативная DLL для Elden Ring 1.17.1. Перерисовывает панель игрока в стиле тёмного фэнтези: воронёное железо, драконьи рога и глаз дракона, светящиеся руны; заливки яркие и читаются на любом фоне.
 
-- три полосы в золотых рамках с красной, синей и зелёной заливкой; потерянная часть на мгновение остаётся видна бледным золотом и затем убывает;
-- на конце каждой полосы — золотой ромб с камнем цвета полосы;
+- три полосы в рамках из тёмного железа с красной, фиолетовой и зелёной заливкой; потерянная часть на мгновение остаётся видна светло-серым и затем убывает;
+- на конце каждой полосы — зазубренное железное лезвие с камнем цвета полосы;
 - текущее и максимальное значение рядом с каждой полосой;
-- имя персонажа над полосами, между двумя тонкими золотыми линиями с завитками;
-- круглый медальон слева в золотом кольце с бусинами и лучами. Знак внутри тусклый без Великой руны, золотой с надетой руной и светится, пока действует Рунная дуга;
+- имя персонажа над полосами, между двумя железными линиями, которые заканчиваются как хвост дракона: волна, зазубренный наконечник, на нижней — шипы;
+- круглый железный медальон слева с двумя рогами и шипами, по кольцу вырезаны руны. Внутри глаз дракона с вертикальным зрачком: пепельный без Великой руны, огненный с надетой руной. Пока действует Рунная дуга, глаз пылает, а руны светятся фиолетовым;
 - уровень персонажа на плашке под медальоном;
 - рамка полосы здоровья краснеет, когда остаётся меньше четверти.
 
@@ -111,7 +111,7 @@ MIT, see `LICENSE`.
 
 Файлы игры мод не меняет: он рисует поверх штатных полос и закрывает их тёмной подложкой.
 
-> Состояние: версия 0.2.0 собрана, тесты проходят, но новый вид в игре ещё не смотрели. Версия 0.1.0 работала в игре с The Convergence и Seamless Co-op. Не подтверждено: вид 0.2.0, появление панели без задержки, скрытие в меню, знак с надетой Великой руной, ролики и разрешения, отличные от 1920x1080.
+> Состояние: версия 0.3.0 собрана, тесты проходят, но новый вид в игре ещё не смотрели. Версия 0.1.0 работала в игре с The Convergence и Seamless Co-op. Не подтверждено: вид 0.3.0, появление панели без задержки, скрытие в меню, глаз с надетой Великой руной, ролики и разрешения, отличные от 1920x1080.
 
 ## Установка
 

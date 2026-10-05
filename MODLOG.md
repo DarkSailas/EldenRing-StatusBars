@@ -3,8 +3,8 @@
 ## Target
 
 - Elden Ring 1.17.1, `eldenring.exe` 2.7.1.0, The Convergence, me3 0.13.0, Seamless Co-op.
-- Idea: a better-looking player panel (HP, FP, stamina) in an ornate dark fantasy style (aged gold, scrolls, a beaded medallion), with the equipped Great Rune in a medallion and the character level under it.
-- Done means: works in the game. Current state (2026-10-04): 0.1.0 loads, the panel is drawn over the game's bars with real values, the medallion is empty without a Great Rune, the level is shown. 0.2.0 (the gold look, no show delay) is built and deployed and has not been seen in the game.
+- Idea: a better-looking player panel (HP, FP, stamina) in a dark fantasy style (blackened iron, dragon horns, a dragon's eye, runes), with the equipped Great Rune shown by the eye in a medallion and the character level under it.
+- Done means: works in the game. Current state (2026-10-04): 0.1.0 loads, the panel is drawn over the game's bars with real values, the medallion is empty without a Great Rune, the level is shown. 0.2.0 (the gold look, no show delay) was deployed and its look rejected. 0.3.0 (iron, dragon and rune look) is built and deployed and has not been seen in the game.
 
 ## Route
 
@@ -47,15 +47,19 @@ Log of a normal load: `hud state Default`, `fade plate 2 covers the screen, alph
 
 The first look (pointed bar ends, diamonds on the medallion, tick marks, a gold ring, a glowing tip, a name plate) was rejected as too ornate and not dark enough. Current look: near-black plates, a 2 px dark steel frame, square bar ends, dull red / steel blue / olive fills with a vertical gradient, grey for the part just lost, the name as plain text, a black medallion in one ring, dim bone-coloured text. The frame of the HP bar turns dark red below a quarter.
 
-That look (0.1.0) was rejected in turn: too dark, the medallion and the bars could not be made out in the game. 0.2.0 goes back to an ornate look, this time with legible colours: a warm black plate with a pointed end, gold bar frames with a gloss line, bright red / blue / green gradient fills, pale gold for the part just lost, a gold lozenge with a stone at the end of each bar, the name between two gold rules that end in spiral scrolls, a medallion in a beaded gold ring with star rays, a hexagonal level plaque. The sign in the medallion is dim bronze, gold, or gold with a glow. Drawing lives in `src/panel.rs` behind the `Surface` trait; `src/overlay.rs` only feeds it the imgui draw list.
+That look (0.1.0) was rejected in turn: too dark, the medallion and the bars could not be made out in the game. 0.2.0 goes back to an ornate look, this time with legible colours: a warm black plate with a pointed end, gold bar frames with a gloss line, bright red / blue / green gradient fills, pale gold for the part just lost, a gold lozenge with a stone at the end of each bar, the name between two gold rules that end in spiral scrolls, a medallion in a beaded gold ring with star rays, a hexagonal level plaque. The sign in the medallion is dim bronze, gold, or gold with a glow.
+
+The gold look was rejected on 2026-10-05 as gaudy; what was wanted is dragons and dark magic, with no gold anywhere. 0.3.0: blackened iron frames with a light top edge, a barbed blade with a stone at the end of each bar, FP in violet, grey for the part just lost. The rules around the name end like a dragon's tail (a damped wave and a barbed tip; the lower one has spines). The medallion is an iron shield with two horns, spikes and ten runes on its ring, and a dragon's eye with a slit pupil in the middle. Without a Great Rune the eye is ashen and the runes grey; with one equipped the eye burns orange and the runes are violet; with a Rune Arc the eye blazes yellow, the runes glow and a violet halo sits behind the shield. The level hangs under it on a pointed iron scale. Horns are built from quads along a curve, since imgui fills only convex shapes.
+
+Drawing lives in `src/panel.rs` behind the `Surface` trait; `src/overlay.rs` only feeds it the imgui draw list.
 
 The test `every_filled_shape_is_convex` draws three sample states to an SVG surface, checks every filled polygon for convexity (imgui fills only convex shapes) and writes `%TEMP%/er_status_bars_preview.svg`. `docs/preview.png` is that file rendered by a browser.
 
 ## Layout (pixels of 1920x1080)
 
-- Bars start at x 150; since 0.2.0 the gold frame starts at x 118 and runs under the medallion, and the plate ends 25 px past the longest bar. Rows: HP 45 to 58, FP 64 to 77, stamina 83 to 96. With a 2 px frame the rows keep a 2 px gap; at a 4 px distance the frames touched and the FP frame was painted over.
+- Bars start at x 150; since 0.2.0 the frame starts at x 118 and runs under the medallion, and the plate ends 25 px past the longest bar. Rows: HP 45 to 58, FP 64 to 77, stamina 83 to 96. With a 2 px frame the rows keep a 2 px gap; at a 4 px distance the frames touched and the FP frame was painted over.
 - Length = maximum value × pixels per point (0.4 / 1.75 / 3.0), between 60 and 900. Checked on one character: 990 HP, 97 FP, 110 stamina.
-- Medallion centre (91, 70), radius 44. Level plate under it.
+- Medallion centre (91, 70), radius 44. Level plate under it. The horns reach y 4, four pixels from the top of the screen at the default position.
 
 ## Gotchas
 
@@ -71,12 +75,13 @@ The test `every_filled_shape_is_convex` draws three sample states to an SVG surf
 - Profiles `convergence.me3` and `convergence - seamless.me3` got a `[[natives]]` entry. Copies from before the change: `D:\Games\ConvergenceER\_fds_backup\statusbars_2026-10-04\`.
 - Undo: restore both `.me3` files from that folder, or delete the added lines.
 - 0.2.0 replaced the DLL; the 0.1.0 build is kept there as `er_status_bars_0.1.0.dll`. The deployed ini got `ShowDelay = 0`.
+- 0.3.0 replaced the DLL on 2026-10-05; the 0.2.0 build is kept there as `er_status_bars_0.2.0.dll`.
 
 ## Not verified
 
-1. The rune sign with a Great Rune equipped, and lit with a Rune Arc.
+1. The eye and the runes with a Great Rune equipped, and lit with a Rune Arc.
 2. Cutscenes, death screen, fast travel: whether the fade rule hides the panel at the right moments.
-3. The 0.2.0 look in the game: the font, the row spacing with the 2.5 px gold frames, the lozenges against the game's own bar ends. Only the SVG preview has been looked at.
+3. The 0.3.0 look in the game: the font, the row spacing with the 2.5 px frames, the blades against the game's own bar ends, the horns at the top edge of the screen. Only the SVG preview has been looked at.
 4. Resolutions other than 1920x1080 and non-16:9 pictures.
 5. Characters with much longer bars than the one tested.
 6. `HideInMenus`: that the panel leaves in the esc menu, the map, the inventory and at a grace, and that nothing in plain play reports a state other than `Default`.
