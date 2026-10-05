@@ -16,7 +16,7 @@ The picture is rendered by the test in `src/panel.rs` from the same shapes the m
 
 The mod changes no game files. It draws over the game's own bars and covers them with a dark plate.
 
-> Status: version 0.3.0 is built and its tests pass, but the new look has not been seen in the game yet. Version 0.1.0 ran in the game with The Convergence and Seamless Co-op (loading, real values, the level). Not confirmed: the 0.3.0 look, the panel coming in without a delay, hiding in menus, the eye with a Great Rune equipped, cutscenes, resolutions other than 1920x1080. See "Known limits".
+> Status: version 0.3.1 is built and its tests pass, but it has not been run in the game yet. It moves the overlay start to 10 seconds after the game loop begins: 0.3.0 hooked Direct3D while the game and ERSS-FG (Streamline) were still creating their swap chain, and the game crashed in `sl.common.dll`. Version 0.1.0 ran in the game with The Convergence and Seamless Co-op (loading, real values, the level). Not confirmed: that start-up fix, the new look, the panel coming in without a delay, hiding in menus, the eye with a Great Rune equipped, cutscenes, resolutions other than 1920x1080. See "Known limits".
 
 ## Install
 
@@ -75,7 +75,7 @@ The panel is shown when there is a player character, the game's interface is in 
 - Positions follow the default interface layout at 16:9. On ultrawide the panel is shifted like the game's interface, which has not been tried.
 - The eye in the medallion is the mod's own drawing and is the same for every Great Rune. Its burning and blazing states have not been seen in the game yet.
 - Status effect icons, buffs and the boss bar are left to the game.
-- Several overlays hooking the same swap chain can conflict. This mod and [er_ping_marker](https://github.com/DarkSailas/EldenRing-PingMarker) take turns at start through a named mutex; mods that do not know about it may still collide. If the game does not start with this DLL, remove it from the profile and check the log.
+- Several overlays hooking the same swap chain can conflict. This mod and [er_ping_marker](https://github.com/DarkSailas/EldenRing-PingMarker) wait for the game loop, then 10 seconds, and take turns through a named mutex; mods that do not know about it may still collide. If the game does not start with this DLL, remove it from the profile and check the log.
 - Built for 1.17.1. Other game versions may shift the structures the mod reads.
 
 ## Build
@@ -111,7 +111,7 @@ MIT, see `LICENSE`.
 
 Файлы игры мод не меняет: он рисует поверх штатных полос и закрывает их тёмной подложкой.
 
-> Состояние: версия 0.3.0 собрана, тесты проходят, но новый вид в игре ещё не смотрели. Версия 0.1.0 работала в игре с The Convergence и Seamless Co-op. Не подтверждено: вид 0.3.0, появление панели без задержки, скрытие в меню, глаз с надетой Великой руной, ролики и разрешения, отличные от 1920x1080.
+> Состояние: версия 0.3.1 собрана, тесты проходят, в игре ещё не запускалась. Оверлей теперь подключается через 10 секунд после начала игрового цикла: 0.3.0 ставила хуки Direct3D, пока игра и ERSS-FG (Streamline) создавали свою цепочку кадров, и игра падала в `sl.common.dll`. Версия 0.1.0 работала в игре с The Convergence и Seamless Co-op. Не подтверждено: это исправление запуска, новый вид, появление панели без задержки, скрытие в меню, глаз с надетой Великой руной, ролики и разрешения, отличные от 1920x1080.
 
 ## Установка
 

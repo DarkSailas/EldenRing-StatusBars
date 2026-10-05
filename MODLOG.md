@@ -4,7 +4,7 @@
 
 - Elden Ring 1.17.1, `eldenring.exe` 2.7.1.0, The Convergence, me3 0.13.0, Seamless Co-op.
 - Idea: a better-looking player panel (HP, FP, stamina) in a dark fantasy style (blackened iron, dragon horns, a dragon's eye, runes), with the equipped Great Rune shown by the eye in a medallion and the character level under it.
-- Done means: works in the game. Current state (2026-10-04): 0.1.0 loads, the panel is drawn over the game's bars with real values, the medallion is empty without a Great Rune, the level is shown. 0.2.0 (the gold look, no show delay) was deployed and its look rejected. 0.3.0 (iron, dragon and rune look) is built and deployed and has not been seen in the game.
+- Done means: works in the game. Current state (2026-10-04): 0.1.0 loads, the panel is drawn over the game's bars with real values, the medallion is empty without a Great Rune, the level is shown. 0.2.0 (the gold look, no show delay) was deployed and its look rejected. 0.3.0 (iron, dragon and rune look) crashed the game at start twice (gotcha 6, not the look itself); 0.3.1 with a later overlay start is built and deployed and has not been run.
 
 ## Route
 
@@ -68,6 +68,7 @@ The test `every_filled_shape_is_convex` draws three sample states to an SVG surf
 3. Empty fade plate slots are null pointers; they are read as raw pointers and skipped.
 4. One start ended in an access violation in `damage_competition.dll_unloaded` (a third-party native in the same profile) before this mod wrote its log. The next start was clean. Not reproduced.
 5. A loaded DLL cannot be overwritten. Rename it, copy the new one, restart the game.
+6. 2026-10-05, two starts in a row died about 14 s after launch: access violation (null read) in `sl.common.dll+0x77C5A`. The dump (`eldenring.exe.27324.dmp`) shows a game thread inside `IDXGIFactory::CreateSwapChain`, already going through this mod's hudhook hook into ERSS-FG, `sl.interposer.dll` and `sl.dlss_g.dll`, while another thread ran `er_ping_marker`'s throwaway `D3D12CreateDevice` through the same `sl.interposer.dll` function. `CSTaskImp` exists before the renderer does (the old comment in `lib.rs` said the opposite), so the overlays were probing Direct3D while the game and Streamline were still setting up theirs. The mutex of gotcha 1 only keeps the two overlays apart. The drawing code of 0.3.0 had no part in it. Fix in 0.3.1: `wait_for_renderer()` waits for the first run of the game task and 10 s more before `Hudhook::apply()`. `er_ping_marker` 0.1.2 does the same.
 
 ## Deployment on the dev machine
 
@@ -76,6 +77,7 @@ The test `every_filled_shape_is_convex` draws three sample states to an SVG surf
 - Undo: restore both `.me3` files from that folder, or delete the added lines.
 - 0.2.0 replaced the DLL; the 0.1.0 build is kept there as `er_status_bars_0.1.0.dll`. The deployed ini got `ShowDelay = 0`.
 - 0.3.0 replaced the DLL on 2026-10-05; the 0.2.0 build is kept there as `er_status_bars_0.2.0.dll`.
+- 0.3.1 replaced it the same day; the 0.3.0 build is kept there as `er_status_bars_0.3.0.dll`, next to `er_ping_marker_0.1.1.dll`.
 
 ## Not verified
 
@@ -85,4 +87,5 @@ The test `every_filled_shape_is_convex` draws three sample states to an SVG surf
 4. Resolutions other than 1920x1080 and non-16:9 pictures.
 5. Characters with much longer bars than the one tested.
 6. `HideInMenus`: that the panel leaves in the esc menu, the map, the inventory and at a grace, and that nothing in plain play reports a state other than `Default`.
-7. That with `ShowDelay = 0` the panel is up before the game's own bars are seen, after a load and after closing a menu.
+7. That 0.3.1 starts: no launch has been made since the fix of gotcha 6. If the game still dies in `sl.common.dll`, the 10 s wait is not the cure and the next suspect is the hooked `CreateSwapChain` itself.
+8. That with `ShowDelay = 0` the panel is up before the game's own bars are seen, after a load and after closing a menu.
